@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pearls & Threads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --cream:#FAF1E2;
+    --cream-dim:#F2E6D0;
+    --brown-dark:#3B2617;
+    --brown-mid:#7C5A3B;
+    --tan:#D9B78D;
+    --tan-soft:#E9D3AE;
+    --orange:#C1602A;
+    --orange-dark:#9A4A1E;
+    --gold:#E3A73D;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--brown-dark);
+    font-family:'Work Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    margin:0;
+  }
+  .mono{
+    font-family:'JetBrains Mono',monospace;
+  }
+  a{color:inherit;}
+  .wrap{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 28px;
+  }
+
+  /* HEADER */
+  header{
+    padding:28px 0 0;
+  }
+  .header-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:22px;
+    letter-spacing:0.3px;
+  }
+  .brand span{color:var(--orange);}
+  .header-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--brown-mid);
+    border:1px solid var(--tan);
+    padding:6px 12px;
+    border-radius:999px;
+  }
+
+  /* HERO */
+  .hero{
+    padding:64px 0 40px;
+    position:relative;
+  }
+  .hero-eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--orange-dark);
+    margin-bottom:14px;
+    display:block;
+  }
+  .hero h1{
+    font-size:clamp(40px,7vw,68px);
+    line-height:1.02;
+    max-width:11ch;
+    color:var(--brown-dark);
+  }
+  .hero h1 em{
+    font-style:italic;
+    color:var(--orange);
+  }
+  .hero-sub{
+    max-width:440px;
+    margin-top:20px;
+    color:var(--brown-mid);
+    font-size:16px;
+    line-height:1.6;
+  }
+  .stitch{
+    width:100%;
+    height:2px;
+    margin-top:44px;
+    background-image:repeating-linear-gradient(90deg,var(--tan) 0 10px,transparent 10px 20px);
+  }
+
+  /* CATEGORY PILLS */
+  .cats{
+    display:flex;
+    gap:10px;
+    padding:26px 0 8px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .cats::-webkit-scrollbar{display:none;}
+  .cat-pill{
+    flex:0 0 auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.5px;
+    padding:9px 18px;
+    border-radius:999px;
+    border:1px solid var(--tan);
+    background:transparent;
+    color:var(--brown-mid);
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .cat-pill:hover{border-color:var(--orange);color:var(--orange-dark);}
+  .cat-pill.active{
+    background:var(--brown-dark);
+    border-color:var(--brown-dark);
+    color:var(--cream);
+  }
+
+  /* GRID */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:28px;
+    padding:32px 0 90px;
+  }
+  .card{
+    background:var(--cream-dim);
+    border-radius:var(--radius);
+    padding:18px 18px 20px;
+    position:relative;
+    transition:transform .18s ease;
+  }
+  .card:hover{transform:translateY(-4px);}
+  .tag-hole-row{
+    display:flex;
+    justify-content:center;
+    margin-bottom:10px;
+  }
+  .tag-hole{
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--cream);
+    border:2px solid var(--tan);
+    position:relative;
+  }
+  .tag-hole::after{
+    content:'';
+    position:absolute;
+    top:-14px;left:50%;
+    width:1px;height:14px;
+    background:var(--tan);
+    transform:translateX(-50%);
+  }
+  .card-img{
+    width:100%;
+    aspect-ratio:1/1;
+    object-fit:cover;
+    border-radius:8px;
+    background:var(--tan-soft);
+    display:block;
+  }
+  .card-cat{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--orange-dark);
+    margin-top:14px;
+  }
+  .card-name{
+    font-family:'Fraunces',serif;
+    font-size:19px;
+    font-weight:500;
+    margin-top:4px;
+    color:var(--brown-dark);
+  }
+  .card-desc{
+    font-size:13.5px;
+    color:var(--brown-mid);
+    margin-top:6px;
+    line-height:1.5;
+  }
+  .card-price{
+    font-family:'JetBrains Mono',monospace;
+    font-size:15px;
+    margin-top:12px;
+    color:var(--brown-dark);
+    border-top:1px dashed var(--tan);
+    padding-top:10px;
+  }
+  .empty-state{
+    grid-column:1/-1;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--brown-mid);
+  }
+  .empty-state h3{color:var(--brown-dark);margin-bottom:8px;}
+
+  /* FOOTER */
+  footer{
+    background:var(--brown-dark);
+    color:var(--cream-dim);
+    padding:40px 0;
+    margin-top:auto;
+  }
+  footer .wrap{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  footer .brand-line{
+    font-family:'Fraunces',serif;
+    font-size:18px;
+  }
+  footer .brand-line span{color:var(--gold);}
+  footer .note{
+    font-size:13px;
+    color:var(--tan);
+  }
+  .rivet-btn{
+    width:14px;height:14px;
+    border-radius:50%;
+    background:var(--brown-dark);
+    border:none;
+    cursor:pointer;
+    opacity:0.35;
+    padding:0;
+  }
+
+  /* MODAL SHARED */
+  .modal-overlay{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(59,38,23,0.55);
+    align-items:center;justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{
+    background:var(--cream);
+    border-radius:16px;
+    padding:32px;
+    max-width:420px;
+    width:100%;
+    max-height:85vh;
+    overflow-y:auto;
+  }
+  .modal-box.wide{max-width:640px;}
+  .modal-box h2{font-size:22px;margin-bottom:6px;}
+  .modal-box p.hint{color:var(--brown-mid);font-size:13.5px;margin:0 0 20px;}
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.8px;
+    text-transform:uppercase;
+    color:var(--brown-mid);
+    margin-bottom:6px;
+  }
+  .field input,.field textarea,.field select{
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--tan);
+    background:#fff;
+    font-family:'Work Sans',sans-serif;
+    font-size:14px;
+    color:var(--brown-dark);
+  }
+  .field textarea{resize:vertical;min-height:70px;}
+  .btn-row{display:flex;gap:10px;margin-top:20px;}
+  .btn{
+    flex:1;
+    padding:12px 16px;
+    border-radius:8px;
+    border:none;
+    font-family:'Work Sans',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    transition:opacity .15s;
+  }
+  .btn:hover{opacity:0.88;}
+  .btn-primary{background:var(--orange);color:#fff;}
+  .btn-secondary{background:transparent;border:1px solid var(--tan);color:var(--brown-dark);}
+  .btn-danger{background:transparent;border:1px solid #C24040;color:#C24040;}
+  .error-msg{
+    color:#B23A3A;
+    font-size:13px;
+    margin-top:8px;
+    display:none;
+  }
+  .close-x{
+    position:absolute;
+    top:22px;right:22px;
+    background:none;border:none;
+    font-size:20px;
+    color:var(--brown-mid);
+    cursor:pointer;
+  }
+
+  /* ADMIN LIST */
+  .admin-list{margin-top:24px;border-top:1px solid var(--tan);padding-top:18px;}
+  .admin-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid var(--tan-soft);
+  }
+  .admin-item img{
+    width:44px;height:44px;
+    object-fit:cover;
+    border-radius:6px;
+    background:var(--tan-soft);
+    flex-shrink:0;
+  }
+  .admin-item .info{flex:1;min-width:0;}
+  .admin-item .info .n{font-weight:600;font-size:14px;}
+  .admin-item .info .p{font-size:12.5px;color:var(--brown-mid);font-family:'JetBrains Mono',monospace;}
+  .admin-item .actions{display:flex;gap:6px;}
+  .icon-btn{
+    width:30px;height:30px;
+    border-radius:6px;
+    border:1px solid var(--tan);
+    background:#fff;
+    cursor:pointer;
+    font-size:13px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .loading-msg{text-align:center;color:var(--brown-mid);padding:60px 0;grid-column:1/-1;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-row">
+    <div class="brand">Pearls <span>&amp;</span> Threads</div>
+    <div class="header-tag">Solo esposizione</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="hero-eyebrow">Collezione in vetrina</span>
+    <h1>Accessori fatti a mano,<br>pensati per <em>tutti</em>.</h1>
+    <p class="hero-sub">Ogni pezzo qui è pensato per essere guardato con calma. Nessun carrello, nessuna fretta: solo la collezione, così com'è oggi.</p>
+    <div class="stitch"></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="cats" id="catsRow"></div>
+  <div class="grid" id="grid">
+    <div class="loading-msg">Carico la vetrina...</div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="brand-line">Pearls <span>&amp;</span> Threads</div>
+    <div class="note">Vetrina digitale — solo visione, nessun acquisto online.</div>
+    <button class="rivet-btn" id="adminTrigger" tabindex="-1" aria-hidden="true"></button>
+  </div>
+</footer>
+
+<div class="modal-overlay" id="pwOverlay">
+  <div class="modal-box" style="position:relative;">
+    <button class="close-x" id="pwClose">&times;</button>
+    <h2>Accesso riservato</h2>
+    <p class="hint">Inserisci la password per modificare la vetrina.</p>
+    <div class="field">
+      <label for="pwInput">Password</label>
+      <input type="password" id="pwInput" autocomplete="off">
+    </div>
+    <p class="error-msg" id="pwError">Password errata. Riprova.</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="pwSubmit">Entra</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="adminOverlay">
+  <div class="modal-box wide" style="position:relative;">
+    <button class="close-x" id="adminClose">&times;</button>
+    <h2>Gestisci categorie</h2>
+    <p class="hint">Crea qui le categorie, poi assegnale ai prodotti qui sotto.</p>
+    <div style="display:flex;gap:10px;">
+      <input type="text" id="fNewCategory" placeholder="Es. Camicie" style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--tan);background:#fff;font-family:'Work Sans',sans-serif;font-size:14px;color:var(--brown-dark);">
+      <button class="btn btn-secondary" id="addCategoryBtn" style="flex:0 0 auto;padding:10px 18px;">Aggiungi</button>
+    </div>
+    <div id="categoryChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;"></div>
+
+    <h2 id="formTitle" style="margin-top:30px;border-top:1px solid var(--tan);padding-top:24px;">Aggiungi un articolo</h2>
+    <p class="hint">I cambiamenti saranno visibili subito a chi visita il sito.</p>
+    <input type="hidden" id="editId">
+    <div class="field">
+      <label for="fName">Nome articolo</label>
+      <input type="text" id="fName" placeholder="Es. Camicia in lino">
+    </div>
+    <div style="display:flex;gap:12px;">
+      <div class="field" style="flex:1;">
+        <label for="fPrice">Prezzo (indicativo)</label>
+        <input type="text" id="fPrice" placeholder="Es. 59€">
+      </div>
+      <div class="field" style="flex:1;">
+        <label for="fCategory">Categoria</label>
+        <select id="fCategory">
+          <option value="">Nessuna categoria creata</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="fImageFile">Foto del prodotto</label>
+      <input type="file" id="fImageFile" accept="image/*">
+      <div id="imagePreviewWrap" style="display:none;margin-top:10px;">
+        <img id="imagePreview" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--tan);">
+      </div>
+    </div>
+    <div class="field">
+      <label for="fDesc">Descrizione breve</label>
+      <textarea id="fDesc" placeholder="Materiale, dettagli, vestibilità..."></textarea>
+    </div>
+    <p class="error-msg" id="formError">Compila almeno nome e prezzo.</p>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="formCancel">Annulla</button>
+      <button class="btn btn-primary" id="formSave">Salva articolo</button>
+    </div>
+    <div class="admin-list" id="adminList"></div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyASxpkP8FT8c0nl5-bbmYUFHpeLluyUYP0",
+  authDomain: "pearls-and-threads.firebaseapp.com",
+  projectId: "pearls-and-threads",
+  storageBucket: "pearls-and-threads.firebasestorage.app",
+  messagingSenderId: "966005954162",
+  appId: "1:966005954162:web:66988b1190a23b552d14eb"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const ADMIN_PASSWORD = "vetrina2026";
+let products = [];
+let activeCategory = "Tutti";
+
+const grid = document.getElementById('grid');
+const catsRow = document.getElementById('catsRow');
+
+async function loadProducts(){
+  try{
+    const snap = await db.collection('products').get();
+    products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }catch(e){
+    console.error(e);
+    products = [];
+  }
+  renderCategories();
+  renderGrid();
+}
+
+let categories = [];
+
+async function loadCategories(){
+  try{
+    const doc = await db.collection('meta').doc('categories').get();
+    categories = doc.exists && doc.data().list ? doc.data().list : [];
+  }catch(e){
+    console.error(e);
+    categories = [];
+  }
+  renderCategorySelect();
+}
+
+async function persistCategories(){
+  try{
+    await db.collection('meta').doc('categories').set({ list: categories });
+  }catch(e){
+    alert('Non sono riuscito a salvare le categorie. Riprova.');
+  }
+}
+
+function getCategories(){
+  const set = new Set(products.map(p => p.category).filter(Boolean));
+  return ['Tutti', ...Array.from(set)];
+}
+
+function renderCategories(){
+  const cats = getCategories();
+  catsRow.innerHTML = '';
+  cats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-pill' + (cat === activeCategory ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = () => { activeCategory = cat; renderCategories(); renderGrid(); };
+    catsRow.appendChild(btn);
+  });
+}
+
+function renderGrid(){
+  const list = activeCategory === 'Tutti' ? products : products.filter(p => p.category === activeCategory);
+  if(list.length === 0){
+    grid.innerHTML = '<div class="empty-state"><h3>Nessun articolo qui</h3><p>Torna a trovarci presto: la collezione si aggiorna spesso.</p></div>';
+    return;
+  }
+  grid.innerHTML = '';
+  list.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="tag-hole-row"><div class="tag-hole"></div></div>
+      <img class="card-img" src="${escapeAttr(p.image || '')}" alt="${escapeAttr(p.name)}" onerror="this.style.background='var(--tan-soft)';this.src='';">
+      <div class="card-cat">${escapeHtml(p.category || '')}</div>
+      <div class="card-name">${escapeHtml(p.name)}</div>
+      <div class="card-desc">${escapeHtml(p.desc || '')}</div>
+      <div class="card-price">${escapeHtml(p.price || '')}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+function escapeAttr(str){
+  return (str || '').replace(/"/g,'&quot;');
+}
+
+/* ---- Password gate ---- */
+const adminTrigger = document.getElementById('adminTrigger');
+const pwOverlay = document.getElementById('pwOverlay');
+const pwInput = document.getElementById('pwInput');
+const pwError = document.getElementById('pwError');
+const adminOverlay = document.getElementById('adminOverlay');
+
+adminTrigger.onclick = () => {
+  pwError.style.display = 'none';
+  pwInput.value = '';
+  pwOverlay.classList.add('open');
+  setTimeout(() => pwInput.focus(), 50);
+};
+document.getElementById('pwClose').onclick = () => pwOverlay.classList.remove('open');
+document.getElementById('pwSubmit').onclick = checkPassword;
+pwInput.addEventListener('keydown', e => { if(e.key === 'Enter') checkPassword(); });
+
+function checkPassword(){
+  if(pwInput.value === ADMIN_PASSWORD){
+    pwOverlay.classList.remove('open');
+    openAdmin();
+  }else{
+    pwError.style.display = 'block';
+  }
+}
+
+/* ---- Admin panel ---- */
+const fName = document.getElementById('fName');
+const fPrice = document.getElementById('fPrice');
+const fCategory = document.getElementById('fCategory');
+const fImageFile = document.getElementById('fImageFile');
+const imagePreviewWrap = document.getElementById('imagePreviewWrap');
+const imagePreview = document.getElementById('imagePreview');
+const fDesc = document.getElementById('fDesc');
+const editId = document.getElementById('editId');
+const formTitle = document.getElementById('formTitle');
+const formError = document.getElementById('formError');
+const adminList = document.getElementById('adminList');
+const fNewCategory = document.getElementById('fNewCategory');
+const categoryChips = document.getElementById('categoryChips');
+let currentImageData = '';
+
+function openAdmin(){
+  resetForm();
+  renderAdminList();
+  renderCategorySelect();
+  renderCategoryChips();
+  adminOverlay.classList.add('open');
+}
+document.getElementById('adminClose').onclick = () => adminOverlay.classList.remove('open');
+document.getElementById('formCancel').onclick = resetForm;
+
+function resetForm(){
+  editId.value = '';
+  fName.value = ''; fPrice.value = ''; fCategory.value = ''; fDesc.value = '';
+  fImageFile.value = '';
+  currentImageData = '';
+  imagePreviewWrap.style.display = 'none';
+  formTitle.textContent = 'Aggiungi un articolo';
+  formError.style.display = 'none';
+}
+
+/* ---- Categorie ---- */
+function renderCategorySelect(){
+  const current = fCategory.value;
+  if(categories.length === 0){
+    fCategory.innerHTML = '<option value="">Crea prima una categoria qui sopra</option>';
+    return;
+  }
+  fCategory.innerHTML = categories.map(c => `<option value="${escapeAttr(c)}">${escapeHtml(c)}</option>`).join('');
+  if(categories.includes(current)) fCategory.value = current;
+}
+
+function renderCategoryChips(){
+  if(categories.length === 0){
+    categoryChips.innerHTML = '<p class="hint" style="margin:0;">Nessuna categoria ancora. Aggiungine una qui sopra.</p>';
+    return;
+  }
+  categoryChips.innerHTML = categories.map(c => `
+    <span style="display:inline-flex;align-items:center;gap:6px;background:var(--tan-soft);color:var(--brown-dark);font-size:13px;padding:6px 10px 6px 14px;border-radius:999px;">
+      ${escapeHtml(c)}
+      <button data-delcat="${escapeAttr(c)}" style="border:none;background:none;cursor:pointer;color:var(--brown-mid);font-size:15px;line-height:1;padding:0;">&times;</button>
+    </span>
+  `).join('');
+  categoryChips.querySelectorAll('[data-delcat]').forEach(b => {
+    b.onclick = () => deleteCategory(b.dataset.delcat);
+  });
+}
+
+document.getElementById('addCategoryBtn').onclick = async () => {
+  const name = fNewCategory.value.trim();
+  if(!name) return;
+  if(categories.includes(name)){ fNewCategory.value = ''; return; }
+  categories.push(name);
+  await persistCategories();
+  fNewCategory.value = '';
+  renderCategoryChips();
+  renderCategorySelect();
+};
+fNewCategory.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('addCategoryBtn').click(); });
+
+async function deleteCategory(name){
+  if(!confirm(`Eliminare la categoria "${name}"? I prodotti che la usano restano, ma senza categoria assegnata.`)) return;
+  categories = categories.filter(c => c !== name);
+  const affected = products.filter(p => p.category === name);
+  affected.forEach(p => { p.category = ''; });
+  await persistCategories();
+  try{
+    await Promise.all(affected.map(p => db.collection('products').doc(p.id).set({ category: '' }, { merge: true })));
+  }catch(e){
+    alert('Alcuni prodotti potrebbero non essersi aggiornati. Riprova.');
+  }
+  renderCategoryChips();
+  renderCategorySelect();
+  renderAdminList();
+  renderCategories();
+  renderGrid();
+}
+
+/* ---- Foto ---- */
+fImageFile.addEventListener('change', () => {
+  const file = fImageFile.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 700;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      currentImageData = canvas.toDataURL('image/jpeg', 0.82);
+      imagePreview.src = currentImageData;
+      imagePreviewWrap.style.display = 'block';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function renderAdminList(){
+  if(products.length === 0){
+    adminList.innerHTML = '<p class="hint">Nessun articolo ancora in vetrina.</p>';
+    return;
+  }
+  adminList.innerHTML = '';
+  products.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'admin-item';
+    row.innerHTML = `
+      <img src="${escapeAttr(p.image || '')}" alt="">
+      <div class="info">
+        <div class="n">${escapeHtml(p.name)}</div>
+        <div class="p">${escapeHtml(p.price || '')} · ${escapeHtml(p.category || '')}</div>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" data-edit="${p.id}" title="Modifica">✎</button>
+        <button class="icon-btn" data-del="${p.id}" title="Elimina">🗑</button>
+      </div>
+    `;
+    adminList.appendChild(row);
+  });
+  adminList.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => editProduct(b.dataset.edit));
+  adminList.querySelectorAll('[data-del]').forEach(b => b.onclick = () => deleteProduct(b.dataset.del));
+}
+
+function editProduct(id){
+  const p = products.find(x => x.id === id);
+  if(!p) return;
+  editId.value = p.id;
+  fName.value = p.name || '';
+  fPrice.value = p.price || '';
+  renderCategorySelect();
+  fCategory.value = p.category || '';
+  fImageFile.value = '';
+  currentImageData = p.image || '';
+  if(currentImageData){
+    imagePreview.src = currentImageData;
+    imagePreviewWrap.style.display = 'block';
+  }else{
+    imagePreviewWrap.style.display = 'none';
+  }
+  fDesc.value = p.desc || '';
+  formTitle.textContent = 'Modifica articolo';
+  formError.style.display = 'none';
+  window.scrollTo(0,0);
+}
+
+async function deleteProduct(id){
+  if(!confirm('Eliminare questo articolo dalla vetrina?')) return;
+  try{
+    await db.collection('products').doc(id).delete();
+    products = products.filter(x => x.id !== id);
+  }catch(e){
+    alert('Non sono riuscito a eliminare il prodotto. Riprova.');
+    return;
+  }
+  renderAdminList();
+  renderCategories();
+  renderGrid();
+}
+
+document.getElementById('formSave').onclick = async () => {
+  const name = fName.value.trim();
+  const price = fPrice.value.trim();
+  if(!name || !price){
+    formError.style.display = 'block';
+    return;
+  }
+  formError.style.display = 'none';
+  const data = {
+    name, price,
+    category: fCategory.value,
+    image: currentImageData,
+    desc: fDesc.value.trim()
+  };
+  try{
+    if(editId.value){
+      await db.collection('products').doc(editId.value).set(data, { merge: true });
+      const p = products.find(x => x.id === editId.value);
+      if(p) Object.assign(p, data);
+    }else{
+      const ref = db.collection('products').doc();
+      await ref.set(data);
+      products.push({ id: ref.id, ...data });
+    }
+  }catch(e){
+    alert('Non sono riuscito a salvare il prodotto. Controlla la connessione e riprova.');
+    return;
+  }
+  resetForm();
+  renderAdminList();
+  renderCategories();
+  renderGrid();
+};
+
+loadProducts();
+loadCategories();
+</script>
+
+</body>
+</html>
